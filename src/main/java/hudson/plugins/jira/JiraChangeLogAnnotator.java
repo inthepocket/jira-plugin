@@ -3,13 +3,14 @@ package hudson.plugins.jira;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import hudson.plugins.jira.model.JiraIssue;
 import org.apache.commons.lang.StringUtils;
 
 import hudson.Extension;
@@ -44,12 +45,12 @@ public class JiraChangeLogAnnotator extends ChangeLogAnnotator {
             return;    // not configured with JIRA
         }
 
-        LOGGER.log(Level.FINE, "Using site: {0}", site.url);
+        LOGGER.log(Level.FINE, "Using site: {0}", site.getUrl());
 
         // if there's any recorded detail information, try to use that, too.
         JiraBuildAction a = build.getAction(JiraBuildAction.class);
 
-        Set<JiraIssue> issuesToBeSaved = new HashSet<JiraIssue>();
+        Set<JiraIssue> issuesToBeSaved = new LinkedHashSet<>();
 
         Pattern pattern = site.getIssuePattern();
 
@@ -111,7 +112,7 @@ public class JiraChangeLogAnnotator extends ChangeLogAnnotator {
                     text.addMarkup(m.start(1), m.end(1), "<a href='" + url + "'>", "</a>");
                 } else {
                     text.addMarkup(m.start(1), m.end(1),
-                            String.format("<a href='%s' tooltip='%s'>", url, Util.escape(issue.title)), "</a>");
+                            String.format("<a href='%s' tooltip='%s'>", url, Util.escape(issue.getSummary())), "</a>");
                 }
 
             } else {

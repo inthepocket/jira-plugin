@@ -1,22 +1,23 @@
 package hudson.plugins.jira;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import com.atlassian.jira.rest.client.api.domain.*;
+import com.google.common.collect.Lists;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import com.atlassian.jira.rest.client.api.domain.BasicIssue;
-import com.atlassian.jira.rest.client.api.domain.Component;
-import com.atlassian.jira.rest.client.api.domain.Issue;
-import com.atlassian.jira.rest.client.api.domain.IssueType;
-import com.atlassian.jira.rest.client.api.domain.Permissions;
-import com.atlassian.jira.rest.client.api.domain.Status;
-import com.atlassian.jira.rest.client.api.domain.Transition;
-import com.atlassian.jira.rest.client.api.domain.Version;
-import com.google.common.collect.Lists;
+import hudson.plugins.jira.model.JiraIssueField;
+import org.apache.commons.lang.StringUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Connection to JIRA.
@@ -96,6 +97,17 @@ public class JiraSession {
         if(changed) {
             service.setIssueLabels(issueId, newLabels);
         }
+    }
+    
+    /**
+     * Adds new to or updates existing fields of the issue.
+     * Can add or update custom fields.
+     * 
+     * @param issueId Jira issue ID like "PRJ-123"
+     * @param fields Fields to add or update
+     */
+    public void addFields(String issueId, List<JiraIssueField> fields) {
+        service.setIssueFields(issueId, fields);
     }
 
     /**
@@ -177,6 +189,17 @@ public class JiraSession {
         return service.getIssueTypes();
     }
 
+    /**
+     * Get all priorities
+     *
+     * @return An array of priorities
+     */
+    public List<Priority> getPriorities() {
+        LOGGER.fine("Fetching priorities");
+        return service.getPriorities();
+    }
+
+    @Deprecated
     public boolean existsIssue(String id) {
         return site.existsIssue(id);
     }
@@ -198,6 +221,7 @@ public class JiraSession {
 
         Version newVersion = getVersionByName(projectKey, version);
         if (newVersion == null) {
+            LOGGER.warning("Version " + version + " was not found");
             return;
         }
 
@@ -226,6 +250,7 @@ public class JiraSession {
 
         Version newVersion = getVersionByName(projectKey, toVersion);
         if (newVersion == null) {
+            LOGGER.warning("Version " + toVersion + " was not found");
             return;
         }
 
@@ -239,14 +264,61 @@ public class JiraSession {
         for (Issue issue : issues) {
             Set<Version> newVersions = new HashSet<Version>();
             newVersions.add(newVersion);
-            for (Version currentVersion : issue.getFixVersions()) {
-                if (!currentVersion.getName().equals(fromVersion)) {
-                    newVersions.add(currentVersion);
+
+            if(StringUtils.startsWith(fromVersion, "/") && StringUtils.endsWith(fromVersion, "/")) {
+
+                String regEx = StringUtils.removeStart(fromVersion, "/");
+                regEx = StringUtils.removeEnd(regEx, "/");
+
+                LOGGER.fine("Using regular expression: " + regEx);
+
+                Pattern fromVersionPattern = Pattern.compile(regEx);
+                for (Version currentVersion : issue.getFixVersions()) {
+                    Matcher versionToRemove = fromVersionPattern.matcher(currentVersion.getName());
+                    if (!versionToRemove.matches()) {
+                        newVersions.add(currentVersion);
+                    }
+                }
+            } else {
+                for (Version currentVersion : issue.getFixVersions()) {
+                    if (!currentVersion.getName().equals(fromVersion)) {
+                        newVersions.add(currentVersion);
+                    }
                 }
             }
 
-            LOGGER.fine("Replaceing version in issue: " + issue.getKey());
+            LOGGER.fine("Replacing version in issue: " + issue.getKey());
             service.updateIssue(issue.getKey(), Lists.newArrayList(newVersions));
+        }
+    }
+
+    /**
+     * Adds the specified version to the fix version list of all issues matching the JQL.
+     *
+     * @param projectKey The JIRA Project
+     * @param version    The version to add
+     * @param query      The JQL Query
+     */
+    public void addFixVersion(String projectKey, String version, String query) {
+
+        Version newVersion = getVersionByName(projectKey, version);
+        if (newVersion == null) {
+            LOGGER.warning("Version " + version + " was not found");
+            return;
+        }
+
+        LOGGER.fine("Fetching issues with JQL:" + query);
+        List<Issue> issues = service.getIssuesFromJqlSearch(query, Integer.MAX_VALUE);
+        if (issues == null || issues.isEmpty()) {
+            return;
+        }
+        LOGGER.fine("Found issues: " + issues.size());
+
+        for (Issue issue : issues) {
+            LOGGER.fine("Adding version: " + newVersion.getName() + " to issue: " + issue.getKey());
+            List<Version> fixVersions = Lists.newArrayList(issue.getFixVersions());
+            fixVersions.add(newVersion);
+            service.updateIssue(issue.getKey(), fixVersions);
         }
     }
 
@@ -332,8 +404,13 @@ public class JiraSession {
      * @param summary
      * @return The issue id
      */
+    @Deprecated
     public Issue createIssue(String projectKey, String description, String assignee, Iterable<String> components, String summary) {
-        final BasicIssue basicIssue = service.createIssue(projectKey, description, assignee, components, summary);
+        return createIssue(projectKey, description, assignee, components, summary, null, null);
+    }
+
+    public Issue createIssue(String projectKey, String description, String assignee, Iterable<String> components, String summary, @Nonnull Long issueTypeId, @Nullable Long priorityId) {
+        final BasicIssue basicIssue = service.createIssue(projectKey, description, assignee, components, summary, issueTypeId, priorityId);
         return service.getIssue(basicIssue.getKey());
     }
 

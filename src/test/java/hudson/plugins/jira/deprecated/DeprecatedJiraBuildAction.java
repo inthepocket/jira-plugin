@@ -2,7 +2,7 @@ package hudson.plugins.jira.deprecated;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import hudson.plugins.jira.JiraIssue;
+import hudson.plugins.jira.model.JiraIssue;
 import hudson.plugins.jira.Messages;
 
 import java.util.*;
@@ -41,7 +41,7 @@ public class DeprecatedJiraBuildAction implements Action {
      */
     public JiraIssue getIssue(String id) {
         for (JiraIssue issue : issues) {
-            if (issue.id.equals(id)) {
+            if (issue.getKey().equals(id)) {
                 return issue;
             }
         }

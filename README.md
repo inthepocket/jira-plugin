@@ -6,7 +6,6 @@ Jenkins JIRA Plugin
 [![Build Status](https://jenkins.ci.cloudbees.com/buildStatus/icon?job=plugins/jira-plugin)](https://jenkins.ci.cloudbees.com/job/plugins/job/jira-plugin/)
 [![Build Status](https://travis-ci.org/jenkinsci/jira-plugin.svg?branch=master)](https://travis-ci.org/jenkinsci/jira-plugin)
 [![Coverage Status](https://coveralls.io/repos/jenkinsci/jira-plugin/badge.svg?branch=master&service=github)](https://coveralls.io/github/jenkinsci/jira-plugin?branch=master)
-[![Issue Stats](http://issuestats.com/github/jenkinsci/jira-plugin/badge/pr?style=flat)](http://issuestats.com/github/jenkinsci/jira-plugin)
 
 
 See [Wiki page](https://wiki.jenkins-ci.org/display/JENKINS/JIRA+Plugin) for more information.
@@ -37,8 +36,8 @@ Fork the repository on GitHub, prepare your change on your forked
 copy, and submit a pull request (see [here](https://github.com/jenkinsci/jira-plugin/pulls) for open pull requests). Your pull request will be evaluated by the [Cloudbees Jenkins job](https://jenkins.ci.cloudbees.com/job/plugins/job/jira-plugin/)
 and you should receive e-mail with the results of the evaluation.
 
-If you are adding new features please make sure that they support Jenkins Workflow Plugin.
-See (here](https://github.com/jenkinsci/workflow-plugin/blob/master/COMPATIBILITY.md) for some information.
+If you are adding new features please make sure that they support Jenkins Pipeline Plugin.
+See (here](https://github.com/jenkinsci/pipeline-plugin/blob/master/COMPATIBILITY.md) for some information.
 
 Before submitting your change make sure that:
 * you added tests - the coverage will be checked after submitting PRs
