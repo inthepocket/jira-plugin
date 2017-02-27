@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
@@ -60,7 +60,10 @@ public class DefaultIssueSelectorTest {
         FreeStyleBuild build = mock(FreeStyleBuild.class);
         ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
         BuildListener listener = mock(BuildListener.class);
-
+        JiraSite site = mock(JiraSite.class);
+        
+        when(site.getIssuePattern()).thenReturn(JiraSite.DEFAULT_ISSUE_PATTERN);
+        
         Set<? extends Entry> entries = Sets.newHashSet(new MockEntry("Fixed JI123-4711"),
                 new MockEntry("Fixed foo_bar-4710"), new MockEntry("Fixed FoO_bAr-4711"),
                 new MockEntry("Fixed someting.\nJFoO_bAr_MULTI-4718"), new MockEntry("TR-123: foo"),
@@ -81,8 +84,7 @@ public class DefaultIssueSelectorTest {
         Set<String> expected = Sets.newHashSet("JI123-4711", "FOO_BAR-4710", "FOO_BAR-4711", "JFOO_BAR_MULTI-4718",
                 "TR-123", "ABC-42", "ABC-127", "ABC-128", "XYZ-10", "XYZ-20", "DOT-4", "DOT-5");
 
-        Set<String> result = new HashSet<String>();
-        DefaultIssueSelector.findIssues(build, result, JiraSite.DEFAULT_ISSUE_PATTERN, listener);
+        Set<String> result = new DefaultIssueSelector().findIssueIds(build, site, listener);
 
         Assert.assertEquals(expected.size(), result.size());
         Assert.assertEquals(expected, result);
@@ -98,7 +100,11 @@ public class DefaultIssueSelectorTest {
         FreeStyleBuild build = mock(FreeStyleBuild.class);
         ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
         BuildListener listener = mock(BuildListener.class);
-
+        JiraSite site = mock(JiraSite.class);
+        
+        when(site.getIssuePattern()).thenReturn(JiraSite.DEFAULT_ISSUE_PATTERN);
+       
+        
         JiraIssueParameterValue parameter = mock(JiraIssueParameterValue.class);
         JiraIssueParameterValue parameterTwo = mock(JiraIssueParameterValue.class);
         ParametersAction action = mock(ParametersAction.class);
@@ -111,21 +117,17 @@ public class DefaultIssueSelectorTest {
         when(parameter.getValue()).thenReturn("JIRA-123");
         when(parameterTwo.getValue()).thenReturn("JIRA-321");
 
-        Set<String> ids = new HashSet<String>();
-
         // Initial state contains zero parameters
-        DefaultIssueSelector.findIssues(build, ids, null, listener);
+        Set<String> ids = new DefaultIssueSelector().findIssueIds(build, site, listener);
         Assert.assertTrue(ids.isEmpty());
 
-        ids = new HashSet<String>();
         parameters.add(parameter);
-        DefaultIssueSelector.findIssues(build, ids, JiraSite.DEFAULT_ISSUE_PATTERN, listener);
+        ids = new DefaultIssueSelector().findIssueIds(build, site, listener);
         Assert.assertEquals(1, ids.size());
         Assert.assertEquals("JIRA-123", ids.iterator().next());
 
-        ids = new TreeSet<String>();
         parameters.add(parameterTwo);
-        DefaultIssueSelector.findIssues(build, ids, JiraSite.DEFAULT_ISSUE_PATTERN, listener);
+        ids = new DefaultIssueSelector().findIssueIds(build, site, listener);
         Assert.assertEquals(2, ids.size());
         Set<String> expected = Sets.newTreeSet(Sets.newHashSet("JIRA-123", "JIRA-321"));
         Assert.assertEquals(expected, ids);
@@ -141,7 +143,7 @@ public class DefaultIssueSelectorTest {
         Set<? extends Entry> entries = Sets.newHashSet(new MockEntry("Fixed FOO_BAR-4711"));
         when(changeLogSet.iterator()).thenReturn(entries.iterator());
 
-        Set<String> ids = new HashSet<String>();
+        Set<String> ids = new LinkedHashSet<String>();
         DefaultIssueSelector.findIssues(build, ids, Pattern.compile("[(w)]"), mock(BuildListener.class));
 
         Assert.assertEquals(0, ids.size());
@@ -163,7 +165,7 @@ public class DefaultIssueSelectorTest {
         changeSets.add(changeLogSet);
         when(build.getChangeSets()).thenReturn(changeSets);
 
-        Set<String> ids = new HashSet<String>();
+        Set<String> ids = new LinkedHashSet<String>();
         Pattern pat = Pattern.compile("\\[(\\w+-\\d+)\\]");
         DefaultIssueSelector.findIssues(build, ids, pat, mock(BuildListener.class));
         Assert.assertEquals(3, ids.size());
@@ -188,7 +190,7 @@ public class DefaultIssueSelectorTest {
         changeSets.add(changeLogSet);
         when(build.getChangeSets()).thenReturn(changeSets);
 
-        Set<String> ids = new HashSet<String>();
+        Set<String> ids = new LinkedHashSet<String>();
         Pattern pat = Pattern.compile("\\[(\\w+-\\d+)\\]");
         DefaultIssueSelector.findIssues(build, ids, pat, mock(BuildListener.class));
         Assert.assertEquals(2, ids.size());
@@ -211,7 +213,7 @@ public class DefaultIssueSelectorTest {
         Set<? extends Entry> entries = Sets.newHashSet(new MockEntry("prepare release project-4.7.1"));
         when(changeLogSet.iterator()).thenReturn(entries.iterator());
 
-        Set<String> ids = new HashSet<String>();
+        Set<String> ids = new LinkedHashSet<String>();
         DefaultIssueSelector.findIssues(build, ids, JiraSite.DEFAULT_ISSUE_PATTERN, null);
         Assert.assertEquals(0, ids.size());
     }

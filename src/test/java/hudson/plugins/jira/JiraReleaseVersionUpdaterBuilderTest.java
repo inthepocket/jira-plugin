@@ -10,8 +10,10 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+import hudson.plugins.jira.model.JiraVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -72,9 +74,9 @@ public class JiraReleaseVersionUpdaterBuilderTest {
 
         when(build.getProject()).thenReturn(project);
         when(build.getEnvironment(listener)).thenReturn(env);
-        when(site.getVersions(JIRA_PRJ)).thenReturn(new HashSet<JiraVersion>());
+        when(site.getVersions(JIRA_PRJ)).thenReturn(new LinkedHashSet<JiraVersion>());
 
-        Set<JiraVersion> existingVersions = new HashSet<JiraVersion>();
+        Set<JiraVersion> existingVersions = new LinkedHashSet<JiraVersion>();
         existingVersions.add(new JiraVersion(JIRA_VER, null, false, false));
         when(site.getVersions(JIRA_PRJ)).thenReturn(existingVersions);
 
@@ -89,9 +91,9 @@ public class JiraReleaseVersionUpdaterBuilderTest {
 
         when(build.getProject()).thenReturn(project);
         when(build.getEnvironment(listener)).thenReturn(env);
-        when(site.getVersions(JIRA_PRJ)).thenReturn(new HashSet<JiraVersion>());
+        when(site.getVersions(JIRA_PRJ)).thenReturn(new LinkedHashSet<JiraVersion>());
 
-        Set<JiraVersion> existingVersions = new HashSet<JiraVersion>();
+        Set<JiraVersion> existingVersions = new LinkedHashSet<JiraVersion>();
         existingVersions.add(new JiraVersion(JIRA_VER, null, false, false));
         when(site.getVersions(JIRA_PRJ)).thenReturn(existingVersions);
 
@@ -108,7 +110,7 @@ public class JiraReleaseVersionUpdaterBuilderTest {
         when(build.getEnvironment(listener)).thenReturn(env);
         when(env.expand(Mockito.anyString())).thenReturn(JIRA_VER);
 
-        Set<JiraVersion> existingVersions = new HashSet<JiraVersion>();
+        Set<JiraVersion> existingVersions = new LinkedHashSet<JiraVersion>();
         existingVersions.add(new JiraVersion(JIRA_VER, null, true, false));
 
         when(site.getVersions(JIRA_PRJ)).thenReturn(existingVersions);
@@ -129,7 +131,7 @@ public class JiraReleaseVersionUpdaterBuilderTest {
         when(build.getEnvironment(listener)).thenReturn(env);
         when(env.expand(Mockito.anyString())).thenReturn(JIRA_VER);
 
-        Set<JiraVersion> existingVersions = new HashSet<JiraVersion>();
+        Set<JiraVersion> existingVersions = new LinkedHashSet<JiraVersion>();
         existingVersions.add(new JiraVersion(JIRA_VER, null, true, false));
 
         when(site.getVersions(JIRA_PRJ)).thenReturn(existingVersions);
