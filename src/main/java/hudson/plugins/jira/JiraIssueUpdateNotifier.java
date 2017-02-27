@@ -70,7 +70,7 @@ public class JiraIssueUpdateNotifier extends Notifier {
         JiraSite site = JiraSite.get(build.getParent());
 
         if (site == null) {
-            listener.getLogger().println(Messages.Updater_NoJiraSite());
+            listener.getLogger().println(Messages.NoJiraSite());
             build.setResult(Result.FAILURE);
         }
 
